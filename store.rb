@@ -1,4 +1,4 @@
-require "post"
+require File.join(File.dirname(__FILE__), 'post')
 require "fileutils"
 
 class Store
@@ -19,6 +19,8 @@ class Store
     end
   
     def read_all_files
+		puts "Read all files.."
+	
         page_root = File.join(self.base)
 
         # recursive folder walk
@@ -55,6 +57,7 @@ class Store
     end
   
     def get(filename)
+		puts "get: " + filename
         post = Post.new(self.base, filename)
         if post.read
             return post

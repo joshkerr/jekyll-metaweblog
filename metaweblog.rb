@@ -1,8 +1,9 @@
 require 'rubygems'
 require 'json'
 require 'xmlrpc/server'
-require 'store'
-require 'monkeypatch'
+require 'aws/s3'
+require File.join(File.dirname(__FILE__), 'store')
+require File.join(File.dirname(__FILE__), 'monkeypatch')
 
 # not just the metaweblog API - this is _all_ the APIs crammed into one namespace. Ugly.
 
@@ -170,6 +171,7 @@ class MetaWeblog
     
 
     def getPostOrDie(postId)
+		puts "postId: " + postId
         post = store.get(postId)
         if not post
             raise XMLRPC::FaultException.new(-99, "post not found")
@@ -200,12 +202,13 @@ class MetaWeblog
         # don't have to fake things with cstegories. I think jekyll has proper
         # category support, though, so it might be worth looking at that some
         # time..
-        return []
+        #return []
         
-        #return store.posts.map{|p| p.tags }.flatten.uniq
+        return store.posts.map{|p| p.tags }.flatten.uniq
     end
     
     def getPost(postId, username, password, extra = {})
+		puts "postId: " + postId
         return post_response(getPostOrDie(postId))
     end
 
@@ -225,8 +228,21 @@ class MetaWeblog
 
 
     def newMediaObject(blogId, username, password, data)
-        path = store.saveFile(data['name'], data['bits'])
-        return { :url => "http://#{self.host}:#{self.port}/#{path}" }
+             # Set the amazon keys
+        AWS::S3::Base.establish_connection!(
+  			:access_key_id     => '0S7JCX297GXS1GZKZNR2',
+			:secret_access_key => 'TLq0Qvd6U0KM6SkBspmxW4m9Fw6ctnIDqM0Wue1I'
+		)
+		
+		filename = "images/" + data['name']
+		
+		AWS::S3::S3Object.store(
+		  filename,
+		  data['bits'],
+		  "joshkerr",
+		  :access => :public_read)
+		        
+        return { :url => "http://joshkerr.s3.amazonaws.com/#{filename}" }
     end
 
 
@@ -241,11 +257,18 @@ class MetaWeblog
     # no categories yet.
 
     def getCategoryList(blogId, user, pass)
-        return []
+        #return []
+		return [ { :categoryId => "100", :categoryName => "random"},
+		{ :categoryId => "101", :categoryName => "rant" },
+		{ :categoryId => "102", :categoryName => "opinion" }
+		]
     end
     
     def getPostCategories(postId, user, pass)
-        return []
+        return [ { :categoryId => "100", :categoryName => "random"},
+		{ :categoryId => "101", :categoryName => "rant" },
+		{ :categoryId => "102", :categoryName => "opinion" }
+		]
     end
     
     def setPostCategories(postId, user, pass, categories)

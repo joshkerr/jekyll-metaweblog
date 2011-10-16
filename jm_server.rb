@@ -3,8 +3,7 @@ require 'rubygems'
 require 'webrick'
 require 'xmlrpc/server'
 require 'optparse'
-require 'metaweblog'
-
+require File.join(File.dirname(__FILE__), 'metaweblog')
 options = {}
 
 optparse = OptionParser.new do|opts|
@@ -67,7 +66,7 @@ httpserver = WEBrick::HTTPServer.new(
 
 httpserver.mount("/xmlrpc.php", server)
 
-['INT', 'TERM', 'HUP'].each { |signal|
+['INT', 'TERM'].each { |signal|
   trap(signal) { httpserver.shutdown }
 }
 

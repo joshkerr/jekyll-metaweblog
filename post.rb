@@ -37,6 +37,10 @@ class Post
             return false
         end
 
+		puts "filename: " + self.filename
+		puts "base: " + self.base
+		puts File.join(self.base, self.filename)
+		
         # read the first 500k from the file. If the post is longer than this, it'll be truncated.
         # but we need to limit to a certain point or we'll slurp in the entirety of every file
         # in the folder.
